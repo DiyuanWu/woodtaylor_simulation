@@ -3,21 +3,16 @@ import torch.nn as nn
 import torch.optim as optim
 
 
+# For reproduce the results
+torch.manual_seed(1234)
+
+import numpy as np
+
+
 from data_gen import sparse_linear_data
 
 from algorithms import topk
 
-n = 256
-
-d = 128
-
-k_star = 16
-
-k = 64 # The sparsity of weights during training
-
-X, Y, w_star = sparse_linear_data(n, d, k_star)
-
-print(X.shape, Y.shape)
 
 class LinearRegressionModel(nn.Module):
     def __init__(self, input_size, output_size):
@@ -27,44 +22,84 @@ class LinearRegressionModel(nn.Module):
     def forward(self, x):
         return self.linear(x)
 
+
+num_expr = 20
+
+n = 256
+
+d = 128
+
+k_star = 16
+
+k = 64 # The sparsity of weights during training
+
     
-model = LinearRegressionModel(d, 1)
-
-print(model.linear.weight.data.shape)
-
-num_epochs = 100
-
-criterion = nn.MSELoss()
-
-for epoch in range(num_epochs):
-    # Forward pass
-    predictions = model.forward(X)
-
-    # Compute the loss
-    loss = criterion(predictions,Y)
-
-    # Backward pass
-    loss.backward()
-
-    # Estimate the Hessian of each parameters of the model
-    # In the case of linear regression, the Hessian is fixed and can be analytcally computed
-
-    hessian = torch.matmul(X.t(), X)
-
-    # Update parameters using the WoodTaylor optimizer, in this special case of Linear regression 
-    for param in model.parameters():
-
-        gradient = param.grad.data
-        
-        param.data =  topk( param.data - gradient @ hessian.inverse() , k) 
-
-    # Zero the gradients for the next iteration
-    model.linear.weight.grad.data.zero_()
+num_steps = 750
 
 
-    # Print the loss every 100 epochs
-    if (epoch + 1) % 10 == 0:
-        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}')
+
+loss_steps = torch.zeros([num_expr, num_steps  ])
+
+dist_steps = torch.zeros([num_expr, num_steps  ])
+
+for expr in range(num_expr):
+
+    X, Y, w_star = sparse_linear_data(n, d, k_star)
+
+    model = LinearRegressionModel(d, 1)
+
+    criterion = nn.MSELoss()
+
+    print(X.shape, Y.shape)
+
+    for step in range(num_steps):
+        # Forward pass
+        predictions = model.forward(X)
+
+        # Compute the loss
+        loss = criterion(predictions,Y)
+
+        loss_steps[expr, step] = loss.item()
+
+        # Backward pass
+        loss.backward()
+
+        # Estimate the Hessian of each parameters of the model
+        # In the case of linear regression, the Hessian is fixed and can be analytcally computed
+
+        hessian = torch.matmul(X.t(), X)
+
+        # Update parameters using the WoodTaylor optimizer, in this special case of Linear regression 
+        for param in model.parameters():
+
+            gradient = param.grad.data
+            
+            param.data =  topk( param.data - gradient @ hessian.inverse() , k) 
 
 
-print(model.linear.weight.data.shape)
+
+        # compute the distance to the optimal weight
+        dist_steps[expr, step] = torch.norm(model.linear.weight.data.view(w_star.shape) - w_star, 2)
+
+        # Zero the gradients for the next iteration
+        model.linear.weight.grad.data.zero_()
+
+file_name_loss = "./slinearreg_loss_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
+
+file_name_dist = "./slinearreg_dist_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
+
+with open(file_name_loss,'wb') as f:
+
+    np.save(f, loss_steps.numpy())
+
+
+with open(file_name_dist,'wb') as f:
+
+    np.save(f, dist_steps.numpy())
+
+
+
+
+
+
+
