@@ -21,12 +21,35 @@ def topk(vector_in, k):
 
     return result_vector
 
-def WT_topk(parameters, k):
 
-    for param in parameters:
-        gradient = param.grad.data
-        print(gradient)
-        hessian = torch.autograd.grad(gradient, param, retain_graph=True ,create_graph=True)[0]
-        print(hessian.shape)
-        param.data =  topk(param.data - (hessian.inverse() @ gradient))                  
-        
+
+def OBC(w_in, H_inv_in,d,k):
+
+    '''
+    The computation of optimal brain compression algorithm 
+    '''
+
+    w = w_in
+
+    H_inv = H_inv_in
+
+    mask = torch.ones(w.shape)
+
+    for i in range(d-k):
+
+        diag_hinv = torch.diag(H_inv).view(w.shape)
+
+        val =  torch.div(w**2, diag_hinv )
+
+        idx = torch.argmin(val).item()
+
+        w = w - (1/diag_hinv[idx]) * torch.mul( H_inv[:,idx], w )
+
+        H_inv =  H_inv - (1/diag_hinv[idx]) * torch.matmul( H_inv[:,idx] , H_inv[idx,:] )
+
+        mask[idx] = 0
+
+
+    return w, mask
+
+

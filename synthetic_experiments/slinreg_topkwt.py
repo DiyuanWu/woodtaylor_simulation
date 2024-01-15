@@ -11,7 +11,7 @@ import numpy as np
 
 from data_gen import sparse_linear_data
 
-from algorithms import topk
+from algorithms import topk, OBC
 
 
 class LinearRegressionModel(nn.Module):
@@ -38,6 +38,8 @@ num_steps = 750
 
 
 
+
+
 loss_steps = torch.zeros([num_expr, num_steps  ])
 
 dist_steps = torch.zeros([num_expr, num_steps  ])
@@ -46,10 +48,19 @@ kiht_loss_steps = torch.zeros([num_expr, num_steps  ])
 
 kiht_dist_steps = torch.zeros([num_expr, num_steps  ])
 
+obc_loss_steps = torch.zeros([num_expr, num_steps  ])
+
+obc_dist_steps = torch.zeros([num_expr, num_steps  ])
+   
+obc_maskdist_steps = torch.zeros([num_expr, num_steps  ])
+
 for expr in range(num_expr):
 
     X, Y, w_star = sparse_linear_data(n, d, k_star)
 
+    
+    # The Topk-WoodTaylor Methods --------------------------------------------------------------------------------
+    
     model= LinearRegressionModel(d, 1)
 
     
@@ -83,7 +94,7 @@ for expr in range(num_expr):
 
             gradient = param.grad.data
             
-            param.data =  topk( param.data - gradient @ hessian.inverse() , k) 
+            param.data, _ =  topk( param.data - gradient @ hessian.inverse() , k) 
 
 
 
@@ -94,7 +105,7 @@ for expr in range(num_expr):
         model.linear.weight.grad.data.zero_()
 
 
-    # The K-IHT method
+    # The K-IHT method--------------------------------------------------------------------------------------------------------------------------
         
     model_kiht =  LinearRegressionModel(d, 1)
 
@@ -128,7 +139,7 @@ for expr in range(num_expr):
 
             gradient = param.grad.data
             
-            param.data =  topk( param.data - max_lr*gradient , k) 
+            param.data, _ =  topk( param.data - max_lr*gradient , k) 
 
 
 
@@ -137,6 +148,65 @@ for expr in range(num_expr):
 
         # Zero the gradients for the next iteration
         model_kiht.linear.weight.grad.data.zero_()
+
+
+    # The OBC_WoodTaylor methods ---------------------------------------------------------------------------------------------------------------
+
+    model_obc= LinearRegressionModel(d, 1)
+
+    criterion = nn.MSELoss()
+
+    # Hessian is analytically computed
+    hessian = torch.matmul(X.t(), X)
+
+    h_inv = hessian.inverse()
+
+    print(X.shape, Y.shape)
+
+    # The topk_WoodTaylor method
+    for step in range(num_steps):
+        # Forward pass
+        predictions = model.forward(X)
+
+        # Compute the loss
+        loss = criterion(predictions,Y)
+
+        loss_steps[expr, step] = loss.item()
+
+        # Backward pass
+        loss.backward()
+
+        # Estimate the Hessian of each parameters of the model
+        # In the case of linear regression, the Hessian is fixed and can be analytcally computed
+
+
+        # Update parameters using the WoodTaylor optimizer, in this special case of Linear regression 
+        for param in model.parameters():
+
+            gradient = param.grad.data
+            
+            data_new = param.data - gradient @ hessian.inverse()
+
+            param.data, mask_obc = OBC( data_new, h_inv, d, k )
+
+            _, mask_topk = topk(data_new, k)
+
+        
+
+
+
+
+
+
+
+        # compute the distance to the optimal weight
+        dist_steps[expr, step] = torch.norm(model.linear.weight.data.view(w_star.shape) - w_star, 2)
+
+        # Zero the gradients for the next iteration
+        model.linear.weight.grad.data.zero_()
+    
+
+
 
 
     

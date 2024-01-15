@@ -74,7 +74,7 @@ for step in range(num_steps):
         
     eigvals =  torch.real(torch.linalg.eigvals(hessian_sym)) 
 
-    max_lr = 1/torch.max( eigvals, dim = 0).values.item()
+    max_lr = 1/torch.max ( eigvals, dim = 0).values.item()
 
     w_kiht = topk( w_kiht - max_lr*gradient.view(w_kiht.shape), k )
 
