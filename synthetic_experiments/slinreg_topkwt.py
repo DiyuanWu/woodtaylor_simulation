@@ -94,7 +94,7 @@ for expr in range(num_expr):
 
             gradient = param.grad.data
             
-            param.data, _ =  topk( param.data - gradient @ hessian.inverse() , k) 
+            param.data, _ = topk( param.data - gradient @ hessian.inverse() , k) 
 
 
 
@@ -166,12 +166,12 @@ for expr in range(num_expr):
     # The topk_WoodTaylor method
     for step in range(num_steps):
         # Forward pass
-        predictions = model.forward(X)
+        predictions = model_obc.forward(X)
 
         # Compute the loss
         loss = criterion(predictions,Y)
 
-        loss_steps[expr, step] = loss.item()
+        obc_loss_steps[expr, step] = loss.item()
 
         # Backward pass
         loss.backward()
@@ -181,7 +181,7 @@ for expr in range(num_expr):
 
 
         # Update parameters using the WoodTaylor optimizer, in this special case of Linear regression 
-        for param in model.parameters():
+        for param in model_obc.parameters():
 
             gradient = param.grad.data
             
@@ -191,19 +191,16 @@ for expr in range(num_expr):
 
             _, mask_topk = topk(data_new, k)
 
-        
-
-
-
+            obc_maskdist_steps[expr, step] = torch.sum( torch.abs( mask_obc - mask_topk.view(mask_obc.shape)  ) )
 
 
 
 
         # compute the distance to the optimal weight
-        dist_steps[expr, step] = torch.norm(model.linear.weight.data.view(w_star.shape) - w_star, 2)
+        obc_dist_steps[expr, step] = torch.norm(model_obc.linear.weight.data.view(w_star.shape) - w_star, 2)
 
         # Zero the gradients for the next iteration
-        model.linear.weight.grad.data.zero_()
+        model_obc.linear.weight.grad.data.zero_()
     
 
 
@@ -220,6 +217,12 @@ file_name_dist = "./topkwt_slinearreg_dist_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.n
 file_name_loss_kiht = "./kiht_slinearreg_loss_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
 
 file_name_dist_kiht = "./kiht_slinearreg_dist_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
+
+file_name_loss_obc = "./obc_slinearreg_loss_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
+
+file_name_dist_obc = "./obc_slinearreg_dist_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
+
+file_name_maskdist_obc = "./obc_slinearreg_maskdist_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
 
 with open(file_name_loss,'wb') as f:
 
@@ -238,6 +241,20 @@ with open(file_name_loss_kiht,'wb') as f:
 with open(file_name_dist_kiht,'wb') as f:
 
     np.save(f, kiht_dist_steps.numpy())
+
+
+with open(file_name_maskdist_obc,'wb') as f:
+
+    np.save(f, obc_maskdist_steps.numpy())
+
+with open(file_name_loss_obc,'wb') as f:
+
+    np.save(f, obc_loss_steps.numpy())
+
+
+with open(file_name_dist_obc,'wb') as f:
+
+    np.save(f, obc_dist_steps.numpy())
 
 
 
