@@ -176,6 +176,8 @@ for expr in range(num_expr):
         # Backward pass
         loss.backward()
 
+        print(loss.item())
+
         # Estimate the Hessian of each parameters of the model
         # In the case of linear regression, the Hessian is fixed and can be analytcally computed
 

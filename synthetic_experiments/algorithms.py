@@ -35,7 +35,10 @@ def OBC(w_in, H_inv_in,d,k):
 
     H_inv = H_inv_in
 
-    mask = torch.ones(w.shape)
+    mask = torch.ones(w.shape).view(-1)
+
+    idx_pruned = []
+
 
     for i in range(d-k):
 
@@ -43,15 +46,21 @@ def OBC(w_in, H_inv_in,d,k):
 
         #print(w.shape, diag_hinv.shape)
 
-        val =  torch.div(w**2, diag_hinv )
+        val =  torch.div(w**2, diag_hinv ).view(-1)
+
+        val[ idx_pruned ] = (torch.max(val).item()+100)*torch.ones(len( idx_pruned) ) 
 
         idx = torch.argmin(val).item()
+
+        idx_pruned.append(idx)
 
         w = w - (1/diag_hinv.view(-1)[idx].item()) * torch.mul( H_inv[:,idx], w )
 
         H_inv =  H_inv - (1/diag_hinv.view(-1)[idx].item()) * torch.matmul( H_inv[:,idx] , H_inv[idx,:] )
 
-        mask[0,idx] = 0
+        mask[idx] = 0
+
+        w = torch.mul(w, mask.view(w.shape)) # this is to eliminate numerical errors, in principle, w should already be sparse
 
         
 

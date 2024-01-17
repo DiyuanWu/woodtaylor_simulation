@@ -29,14 +29,27 @@ file_name_loss_kiht = "./kiht_slinearreg_loss_{}steps_{}exprs_n{}_d{}_k{}_kstar{
 
 file_name_dist_kiht = "./kiht_slinearreg_dist_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
 
+file_name_loss_obc = "./obc_slinearreg_loss_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
+
+file_name_dist_obc = "./obc_slinearreg_dist_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
+
+file_name_maskdist_obc = "./obc_slinearreg_maskdist_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
+
 
 loss_topkwt = np.load(file_name_loss)
 
 loss_kiht = np.load(file_name_loss_kiht)
 
+loss_obc = np.load(file_name_loss_obc)
+
 dist_topkwt = np.load(file_name_dist)
 
 dist_kiht = np.load(file_name_dist_kiht)
+
+dist_obc = np.load(file_name_dist_obc)
+
+maskdist_obc = np.load(file_name_maskdist_obc)
+
 
 
 loss_topkwt_mean = np.mean(loss_topkwt, axis = 0)
@@ -47,6 +60,13 @@ loss_kiht_mean = np.mean(loss_kiht, axis = 0)
 
 loss_kiht_var = np.var(loss_kiht, axis = 0)
 
+loss_obc_mean = np.mean(loss_obc, axis = 0)
+
+loss_obc_var = np.var(loss_obc, axis = 0)
+
+
+print(loss_obc_mean)
+
 dist_topkwt_mean = np.mean(dist_topkwt, axis = 0)
 
 dist_topkwt_var = np.var(dist_topkwt, axis = 0)
@@ -56,6 +76,13 @@ dist_kiht_mean = np.mean(dist_kiht, axis = 0)
 dist_kiht_var = np.var(dist_kiht, axis = 0)
 
 
+dist_obc_mean = np.mean(dist_obc, axis = 0)
+
+dist_obc_var = np.var(dist_obc, axis = 0)
+
+maskdist_obc_mean = np.mean(maskdist_obc)
+
+maskdist_obc_var = np.var(maskdist_obc)
 
 
 plot_t = np.linspace(0,750,750)
@@ -69,6 +96,10 @@ ax[0].fill_between(plot_t, loss_topkwt_mean-np.sqrt(loss_topkwt_var), loss_topkw
 ax[0].plot(plot_t, loss_kiht_mean, label='k-IHT', color = 'red')
 
 ax[0].fill_between(plot_t, loss_kiht_mean-np.sqrt(loss_kiht_var), loss_kiht_mean+np.sqrt(loss_kiht_var), fc='red', alpha = 0.3 )
+
+ax[0].plot(plot_t, loss_obc_mean, label='OBC', color = 'green')
+
+ax[0].fill_between(plot_t, loss_obc_mean-np.sqrt(loss_obc_var), loss_obc_mean+np.sqrt(loss_obc_var), fc='green', alpha = 0.3 )
 
 ax[0].set_xlabel('# of steps')
 
@@ -84,6 +115,10 @@ ax[1].fill_between(plot_t, dist_topkwt_mean-np.sqrt(dist_topkwt_var), dist_topkw
 ax[1].plot(plot_t, dist_kiht_mean, label='k-IHT', color = 'red')
 
 ax[1].fill_between(plot_t, dist_kiht_mean-np.sqrt(dist_kiht_var), dist_kiht_mean+np.sqrt(dist_kiht_var), fc='red', alpha = 0.3 )
+
+ax[1].plot(plot_t, dist_obc_mean, label='OBC', color = 'green')
+
+ax[1].fill_between(plot_t, dist_obc_mean-np.sqrt(dist_obc_var), dist_obc_mean+np.sqrt(dist_obc_var), fc='green', alpha = 0.3 )
 
 ax[1].set_xlabel('# of steps')
 
