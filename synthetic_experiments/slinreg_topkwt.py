@@ -176,26 +176,31 @@ for expr in range(num_expr):
         # Backward pass
         loss.backward()
 
-        print(loss.item())
+        #print(loss.item())
 
         # Estimate the Hessian of each parameters of the model
         # In the case of linear regression, the Hessian is fixed and can be analytcally computed
 
 
         # Update parameters using the WoodTaylor optimizer, in this special case of Linear regression 
+
+    
         for param in model_obc.parameters():
 
             gradient = param.grad.data
             
             data_new = param.data - gradient @ hessian.inverse()
 
-            param.data, mask_obc = OBC( data_new, h_inv, d, k )
+            data_new, mask_obc = OBC( data_new, h_inv, d, k )
+
 
             _, mask_topk = topk(data_new, k)
 
+            param.data = torch.mul(mask_obc.view(param.shape), data_new)
+
             obc_maskdist_steps[expr, step] = torch.sum( torch.abs( mask_obc - mask_topk.view(mask_obc.shape)  ) )
 
-
+        print(h_inv)
 
 
         # compute the distance to the optimal weight

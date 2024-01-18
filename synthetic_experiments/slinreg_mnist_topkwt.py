@@ -112,7 +112,7 @@ for expr in range(num_expr):
 
             gradient = param.grad.data
             
-            param.data =  topk( param.data - gradient @ hessian.inverse() , k) 
+            param.data, _ =  topk( param.data - gradient @ hessian.inverse() , k) 
 
 
 

@@ -61,7 +61,7 @@ for step in range(num_steps):
     gradient =  4*torch.pow(torch.norm( w_topkwt - w_star,2 ) , 2)*(w_topkwt - w_star)
     hessian = 8*torch.matmul((w_topkwt - w_star).t(), (w_topkwt - w_star)) + 4* torch.pow(torch.norm( w_topkwt - w_star,2 ) , 2)*torch.eye(d)
 
-    w_topkwt = topk( w_topkwt- hessian.inverse() @ gradient, k)
+    w_topkwt, _ = topk( w_topkwt- hessian.inverse() @ gradient, k)
 
 
 
@@ -76,7 +76,7 @@ for step in range(num_steps):
 
     max_lr = 1/torch.max ( eigvals, dim = 0).values.item()
 
-    w_kiht = topk( w_kiht - max_lr*gradient.view(w_kiht.shape), k )
+    w_kiht, _ = topk( w_kiht - max_lr*gradient.view(w_kiht.shape), k )
 
 
    
