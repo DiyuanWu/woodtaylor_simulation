@@ -191,7 +191,7 @@ for expr in range(num_expr):
             
             data_new = param.data - gradient @ hessian.inverse()
 
-            data_new, mask_obc = OBC( data_new, h_inv, d, k )
+            _ , mask_obc = OBC( param.data, h_inv, d, k )
 
 
             _, mask_topk = topk(data_new, k)
@@ -199,8 +199,6 @@ for expr in range(num_expr):
             param.data = torch.mul(mask_obc.view(param.shape), data_new)
 
             obc_maskdist_steps[expr, step] = torch.sum( torch.abs( mask_obc - mask_topk.view(mask_obc.shape)  ) )
-
-        print(h_inv)
 
 
         # compute the distance to the optimal weight

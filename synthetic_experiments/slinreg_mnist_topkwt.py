@@ -50,7 +50,7 @@ n = 2*d
 
 num_expr = 20
 
-num_steps = 750
+num_steps = 4000
 
 
 
@@ -159,7 +159,7 @@ for expr in range(num_expr):
 
             gradient = param.grad.data
             
-            param.data =  topk( param.data - max_lr*gradient , k) 
+            param.data,_ =  topk( param.data - max_lr*gradient , k) 
 
 
 

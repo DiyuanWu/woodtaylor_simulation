@@ -21,6 +21,8 @@ k = 64 # The sparsity of weights during training
 num_steps = 750
 
 
+
+
 file_name_loss = "./topkwt_slinearreg_loss_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
 
 file_name_dist = "./topkwt_slinearreg_dist_{}steps_{}exprs_n{}_d{}_k{}_kstar{}.npy".format( num_steps, num_expr, n,d,k,k_star)
@@ -85,7 +87,7 @@ maskdist_obc_mean = np.mean(maskdist_obc)
 maskdist_obc_var = np.var(maskdist_obc)
 
 
-plot_t = np.linspace(0,750,750)
+plot_t = np.linspace(0,num_steps,num_steps)
 
 fig, ax = plt.subplots(1,2, figsize= (10.5,5))
 
@@ -97,9 +99,9 @@ ax[0].plot(plot_t, loss_kiht_mean, label='k-IHT', color = 'red')
 
 ax[0].fill_between(plot_t, loss_kiht_mean-np.sqrt(loss_kiht_var), loss_kiht_mean+np.sqrt(loss_kiht_var), fc='red', alpha = 0.3 )
 
-ax[0].plot(plot_t, loss_obc_mean, label='OBC', color = 'green')
+#ax[0].plot(plot_t, loss_obc_mean, label='OBC', color = 'green')
 
-ax[0].fill_between(plot_t, loss_obc_mean-np.sqrt(loss_obc_var), loss_obc_mean+np.sqrt(loss_obc_var), fc='green', alpha = 0.3 )
+#ax[0].fill_between(plot_t, loss_obc_mean-np.sqrt(loss_obc_var), loss_obc_mean+np.sqrt(loss_obc_var), fc='green', alpha = 0.3 )
 
 ax[0].set_xlabel('# of steps')
 
@@ -116,9 +118,9 @@ ax[1].plot(plot_t, dist_kiht_mean, label='k-IHT', color = 'red')
 
 ax[1].fill_between(plot_t, dist_kiht_mean-np.sqrt(dist_kiht_var), dist_kiht_mean+np.sqrt(dist_kiht_var), fc='red', alpha = 0.3 )
 
-ax[1].plot(plot_t, dist_obc_mean, label='OBC', color = 'green')
+#ax[1].plot(plot_t, dist_obc_mean, label='OBC', color = 'green')
 
-ax[1].fill_between(plot_t, dist_obc_mean-np.sqrt(dist_obc_var), dist_obc_mean+np.sqrt(dist_obc_var), fc='green', alpha = 0.3 )
+#ax[1].fill_between(plot_t, dist_obc_mean-np.sqrt(dist_obc_var), dist_obc_mean+np.sqrt(dist_obc_var), fc='green', alpha = 0.3 )
 
 ax[1].set_xlabel('# of steps')
 
@@ -134,15 +136,17 @@ plt.savefig(figname)
 
 
 
+#---------------------MNIST experiments---------------------------------------------------------
+num_steps_mnist = 4000
 
 
-file_name_loss = "./topkwt_slinearreg_mnist_loss_{}steps_{}exprs.npy".format( num_steps, num_expr)
+file_name_loss = "./topkwt_slinearreg_mnist_loss_{}steps_{}exprs.npy".format( num_steps_mnist, num_expr)
 
-file_name_dist = "./topkwt_slinearreg_mnist_dist_{}steps_{}exprs.npy".format( num_steps, num_expr)
+file_name_dist = "./topkwt_slinearreg_mnist_dist_{}steps_{}exprs.npy".format( num_steps_mnist, num_expr)
 
-file_name_loss_kiht = "./kiht_slinearreg_mnist_loss_{}steps_{}exprs.npy".format( num_steps, num_expr)
+file_name_loss_kiht = "./kiht_slinearreg_mnist_loss_{}steps_{}exprs.npy".format( num_steps_mnist, num_expr)
 
-file_name_dist_kiht = "./kiht_slinearreg_mnist_dist_{}steps_{}exprs.npy".format( num_steps, num_expr)
+file_name_dist_kiht = "./kiht_slinearreg_mnist_dist_{}steps_{}exprs.npy".format( num_steps_mnist, num_expr)
 
 file_name_origin_signals = "./slinearreg_mnist_orisigals.npy"
 
@@ -205,7 +209,7 @@ dist_kiht_var = np.var(dist_kiht, axis = 0)
 
 
 
-plot_t = np.linspace(0,750,750)
+plot_t = np.linspace(0,num_steps_mnist,num_steps_mnist)
 
 fig, ax = plt.subplots(1,2, figsize= (10.5,5))
 
