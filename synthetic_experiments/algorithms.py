@@ -41,13 +41,18 @@ def OBC(w_in, H_inv_in,d,k):
     eps = 1e-3
 
     for i in range(d-k):
+
         diag_hinv = torch.diag(H_inv)
 
-        diag_hinv_temp = diag_hinv + eps 
+        diag_hinv_temp = diag_hinv + eps
+
+        #print(diag_hinv)
 
         # add some maximum value to w where it is zero
         ### mask_w_zero = (w == 0) # mask saying where w is zero
         ### w[mask_w_zero] = w.max() + 1
+
+        #print(diag_hinv)
         val =  torch.div(w**2, diag_hinv_temp ).view(-1)
 
         val[val == 0] = val.max() +100
@@ -56,8 +61,10 @@ def OBC(w_in, H_inv_in,d,k):
 
         p = torch.argmin(val).item()
 
-        hessian_inv_col_p = H_inv[:, p].view(1,-1)
-        hessian_inv_row_p = H_inv[p, :].view(-1,1)
+        hessian_inv_col_p = H_inv[:, p].view(-1,1)
+        hessian_inv_row_p = H_inv[p, :].view(1,-1)
+
+        #print(hessian_inv_col_p.shape)
         
         mask[p] = 0
         
@@ -65,11 +72,12 @@ def OBC(w_in, H_inv_in,d,k):
 
         # update w
 
-        print(w)
-        w_update = (w[p] / hessian_inv_pp) * hessian_inv_col_p.view(in_shape)
+        # print(w)
+        w_update = (w[0,p] / hessian_inv_pp) * hessian_inv_col_p.view(in_shape)
         w.sub_(w_update)
 
         # update Hinv
+
         H_inv.sub_((1/hessian_inv_pp) * hessian_inv_col_p @ hessian_inv_row_p)
 
         # update mask

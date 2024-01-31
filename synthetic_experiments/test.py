@@ -11,7 +11,7 @@ import torch.optim as optim
 from matplotlib import pyplot as plt
 
 # For reproduce the results
-#torch.manual_seed(1234)
+torch.manual_seed(1234)
 
 import numpy as np
 
@@ -36,7 +36,7 @@ k_star = 16
 k = 64 # The sparsity of weights during training
 
     
-num_steps = 100
+num_steps = 1000
 
 X, Y, w_star = sparse_linear_data(n, d, k_star)
 
@@ -93,12 +93,12 @@ for expr in range(num_expr):
             
             data_new = param.data - gradient @ hessian.inverse()
 
-            data_new , mask_obc = OBC( param.data, h_inv, d, k )
+            _ , mask_obc = OBC( param.data, h_inv, d, k )
 
 
             _, mask_topk = topk(data_new, k)
 
-            param.data = data_new.view(param.data.shape)
+            param.data = mask_obc.view(param.shape) * data_new
 
             # param.data = torch.mul(mask_obc.view(param.shape), data_new)
 

@@ -99,9 +99,9 @@ ax[0].plot(plot_t, loss_kiht_mean, label='k-IHT', color = 'red')
 
 ax[0].fill_between(plot_t, loss_kiht_mean-np.sqrt(loss_kiht_var), loss_kiht_mean+np.sqrt(loss_kiht_var), fc='red', alpha = 0.3 )
 
-#ax[0].plot(plot_t, loss_obc_mean, label='OBC', color = 'green')
+ax[0].plot(plot_t, loss_obc_mean, label='OBC', color = 'green')
 
-#ax[0].fill_between(plot_t, loss_obc_mean-np.sqrt(loss_obc_var), loss_obc_mean+np.sqrt(loss_obc_var), fc='green', alpha = 0.3 )
+ax[0].fill_between(plot_t, loss_obc_mean-np.sqrt(loss_obc_var), loss_obc_mean+np.sqrt(loss_obc_var), fc='green', alpha = 0.3 )
 
 ax[0].set_xlabel('# of steps')
 
@@ -118,9 +118,9 @@ ax[1].plot(plot_t, dist_kiht_mean, label='k-IHT', color = 'red')
 
 ax[1].fill_between(plot_t, dist_kiht_mean-np.sqrt(dist_kiht_var), dist_kiht_mean+np.sqrt(dist_kiht_var), fc='red', alpha = 0.3 )
 
-#ax[1].plot(plot_t, dist_obc_mean, label='OBC', color = 'green')
+ax[1].plot(plot_t, dist_obc_mean, label='OBC', color = 'green')
 
-#ax[1].fill_between(plot_t, dist_obc_mean-np.sqrt(dist_obc_var), dist_obc_mean+np.sqrt(dist_obc_var), fc='green', alpha = 0.3 )
+ax[1].fill_between(plot_t, dist_obc_mean-np.sqrt(dist_obc_var), dist_obc_mean+np.sqrt(dist_obc_var), fc='green', alpha = 0.3 )
 
 ax[1].set_xlabel('# of steps')
 
@@ -130,7 +130,7 @@ ax[0].legend()
 
 ax[1].legend()
 
-figname = 'slinreg.png'
+figname = 'slinreg_obc.png'
 
 plt.savefig(figname)
 
@@ -244,7 +244,7 @@ ax[0].legend()
 
 ax[1].legend()
 
-figname = 'slinreg_mnist.png'
+figname = 'slinreg_mnist_obc.png'
 
 plt.savefig(figname)
 
@@ -270,7 +270,7 @@ ax[0,2].set_title( ' recovered by k-IHT')
 
 fig.tight_layout()
 
-figname = 'slinreg_mnist_recovery.png'
+figname = 'slinreg_mnist_recovery_obc.png'
 
 plt.savefig(figname)
 
