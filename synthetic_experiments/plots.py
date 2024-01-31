@@ -91,7 +91,7 @@ plot_t = np.linspace(0,num_steps,num_steps)
 
 fig, ax = plt.subplots(1,2, figsize= (10.5,5))
 
-ax[0].plot(plot_t, loss_topkwt_mean, label='topk-WT', color = 'blue')
+ax[0].plot(plot_t, loss_topkwt_mean, label='topk-I-OBS', color = 'blue')
 
 ax[0].fill_between(plot_t, loss_topkwt_mean-np.sqrt(loss_topkwt_var), loss_topkwt_mean+np.sqrt(loss_topkwt_var), fc='blue', alpha = 0.3 )
 
@@ -110,7 +110,7 @@ ax[0].set_ylabel('Loss')
 ax[0].legend()
 
 
-ax[1].plot(plot_t, dist_topkwt_mean, label='topk-WT', color = 'blue')
+ax[1].plot(plot_t, dist_topkwt_mean, label='topk-I-OBS', color = 'blue')
 
 ax[1].fill_between(plot_t, dist_topkwt_mean-np.sqrt(dist_topkwt_var), dist_topkwt_mean+np.sqrt(dist_topkwt_var), fc='blue', alpha = 0.3 )
 
@@ -213,7 +213,7 @@ plot_t = np.linspace(0,num_steps_mnist,num_steps_mnist)
 
 fig, ax = plt.subplots(1,2, figsize= (10.5,5))
 
-ax[0].plot(plot_t, loss_topkwt_mean, label='topk-WT', color = 'blue')
+ax[0].plot(plot_t, loss_topkwt_mean, label='topk-I-OBS', color = 'blue')
 
 ax[0].fill_between(plot_t, loss_topkwt_mean-np.sqrt(loss_topkwt_var), loss_topkwt_mean+np.sqrt(loss_topkwt_var), fc='blue', alpha = 0.3 )
 
@@ -228,7 +228,7 @@ ax[0].set_ylabel('Loss')
 ax[0].legend()
 
 
-ax[1].plot(plot_t, dist_topkwt_mean, label='topk-WT', color = 'blue')
+ax[1].plot(plot_t, dist_topkwt_mean, label='topk-I-OBS', color = 'blue')
 
 ax[1].fill_between(plot_t, dist_topkwt_mean-np.sqrt(dist_topkwt_var), dist_topkwt_mean+np.sqrt(dist_topkwt_var), fc='blue', alpha = 0.3 )
 
@@ -264,7 +264,7 @@ for i in range(5):
 
 ax[0,0].set_title( 'origin signal' )
 
-ax[0,1].set_title( ' recovered by topk-WT ' )
+ax[0,1].set_title( ' recovered by topk-I-OBS ' )
 
 ax[0,2].set_title( ' recovered by k-IHT') 
 
