@@ -41,24 +41,26 @@ def OBC(w_in, H_inv_in,d,k):
 
     eps = 1e-3
 
+    diag_hinv = torch.diag(H_inv).view(w.shape)
+
+    diag_hinv_temp = diag_hinv + eps 
+
+    val =  torch.div(w**2, diag_hinv_temp ).view(-1)
+
 
     for i in range(d-k):
 
-        diag_hinv = torch.diag(H_inv).view(w.shape)
-
-        diag_hinv_temp = diag_hinv + eps 
-
-        val =  torch.div(w**2, diag_hinv_temp ).view(-1)
+        
 
         #print(i)
 
         #print(val)
 
-        if len(idx_pruned) > 0:
+        #if len(idx_pruned) > 0:
 
             # This pervent the pruned indices to be selected again
 
-            val[ idx_pruned ] = (torch.max(val)+100) * torch.ones(len( idx_pruned) ) 
+        #    val[ idx_pruned ] = (torch.max(val)+100) * torch.ones(len( idx_pruned) ) 
 
             #print(val)
 
