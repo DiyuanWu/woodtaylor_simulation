@@ -30,6 +30,7 @@ def OBC(w_in, H_inv_in,d,k):
     '''
     The computation of optimal brain compression algorithm 
     '''
+    in_shape = w_in.shape
 
     w = w_in
 
@@ -37,46 +38,42 @@ def OBC(w_in, H_inv_in,d,k):
 
     mask = torch.ones(w.shape).view(-1)
 
-    idx_pruned = []
-
     eps = 1e-3
 
-    diag_hinv = torch.diag(H_inv).view(w.shape)
-
-    diag_hinv_temp = diag_hinv + eps 
-
-    val =  torch.div(w**2, diag_hinv_temp ).view(-1)
-
-
     for i in range(d-k):
+        diag_hinv = torch.diag(H_inv)
 
+        diag_hinv_temp = diag_hinv + eps 
+
+        # add some maximum value to w where it is zero
+        ### mask_w_zero = (w == 0) # mask saying where w is zero
+        ### w[mask_w_zero] = w.max() + 1
+        val =  torch.div(w**2, diag_hinv_temp ).view(-1)
+
+        val[val == 0] = val.max() +100
+        ### w.mul_(mask_w_zero) # restore zeros in w
+
+
+        p = torch.argmin(val).item()
+
+        hessian_inv_col_p = H_inv[:, p].view(1,-1)
+        hessian_inv_row_p = H_inv[p, :].view(-1,1)
         
-
-        #print(i)
-
-        #print(val)
-
-        #if len(idx_pruned) > 0:
-
-            # This pervent the pruned indices to be selected again
-
-        #    val[ idx_pruned ] = (torch.max(val)+100) * torch.ones(len( idx_pruned) ) 
-
-            #print(val)
-
-        idx = torch.argmin(val).item()
-
-        idx_pruned.append(idx)
-
-        mask[idx] = 0
-
-        w = w - (1/diag_hinv.view(-1)[idx].item()) * torch.mul( H_inv[:,idx], w )
-
-        H_inv =  H_inv - (1/diag_hinv.view(-1)[idx].item()) * torch.matmul( H_inv[:,idx].view(-1,1) , H_inv[idx,:].view(1,-1) )
-
-        w = torch.mul(w, mask.view(w.shape)) # this is to eliminate numerical errors, in principle, w should already be sparse
-
+        mask[p] = 0
         
+        hessian_inv_pp = diag_hinv_temp[p]
+
+        # update w
+
+        print(w)
+        w_update = (w[p] / hessian_inv_pp) * hessian_inv_col_p.view(in_shape)
+        w.sub_(w_update)
+
+        # update Hinv
+        H_inv.sub_((1/hessian_inv_pp) * hessian_inv_col_p @ hessian_inv_row_p)
+
+        # update mask
+        w.mul_(mask)
 
     return w, mask
 

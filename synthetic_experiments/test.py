@@ -36,7 +36,7 @@ k_star = 16
 k = 64 # The sparsity of weights during training
 
     
-num_steps = 750
+num_steps = 100
 
 X, Y, w_star = sparse_linear_data(n, d, k_star)
 
