@@ -152,7 +152,11 @@ dataset_train , dataset_val = get_rn50x16openai_datasets(data_path, subclasses)
 train_loader = DataLoader( dataset_train, batch_size=256, shuffle=True )
 
 # The number of samples used for 
-obc_sample_loader = DataLoader( dataset_train, batch_size=1024, shuffle=True )
+obc_sample_loader = DataLoader( dataset_train, batch_size=len(dataset_train), shuffle=True )
+
+#obc_sample_loader = DataLoader( dataset_train, batch_size=1024, shuffle=True )
+
+# 
 
 
 d = dataset_train.dim
