@@ -5,4 +5,6 @@ feature_train = torch.load("/home/dwu/Projects/Projects/Sparse SGD/woodtaylor_si
 
 targets_train = torch.load("/home/dwu/Projects/Projects/Sparse SGD/woodtaylor_simulation/targets_train.pt" )
 
-print(targets_train[-1])
+targets_val = torch.load("/home/dwu/Projects/Projects/Sparse SGD/woodtaylor_simulation/targets_val.pt" )
+
+print(targets_val.shape)

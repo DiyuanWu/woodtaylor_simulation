@@ -10,6 +10,10 @@ from torchvision import transforms, utils
 
 from algorithms import OBC
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(device)
+
+
 
 class LinearRegressionModel(nn.Module):
     def __init__(self, input_size, output_size):
@@ -67,6 +71,10 @@ def training_obc(model, criterion, num_epochs, optimizer,training_loader, obc_sa
 
         X, Y = next(iter( obc_sample_loader ))
 
+        X = X.to(device)
+        Y = Y.to(device)
+
+
         hessian = X.t() @ X + hessian_reg
 
         h_inv = torch.linalg.inv(hessian)
@@ -92,6 +100,8 @@ def training_obc(model, criterion, num_epochs, optimizer,training_loader, obc_sa
             # get input data
 
             inputs, labels = data
+            inputs = inputs.to(device)
+            labels = labels.to(device)
 
             # Forward pass
             predictions = model(inputs)
@@ -122,22 +132,13 @@ def training_obc(model, criterion, num_epochs, optimizer,training_loader, obc_sa
     return loss_epochs
 
 
-
-
-
-            
-
-
-
-
-
-    
 data_path = '/home/dwu/Projects/Projects/Sparse SGD/woodtaylor_simulation'
 
 dataset_train , dataset_val = get_rn50x16openai_datasets(data_path, 10240, 10240)
 
 train_loader = DataLoader( dataset_train, batch_size=256, shuffle=True )
 
+# The number of samples used for 
 obc_sample_loader = DataLoader( dataset_train, batch_size=1024, shuffle=True )
 
 num_class = 1000
@@ -148,7 +149,7 @@ sparsity = 0.25
 
 k = int(sparsity*d )
 
-model = LinearRegressionModel(d, num_class)
+model = LinearRegressionModel(d, num_class).to(device)
 
 criterion = nn.CrossEntropyLoss()
 
@@ -160,4 +161,4 @@ print(model.linear.weight.shape)
 
 optimizer = optim.SGD( model.parameters(), lr = 0.01, momentum=0.9)
 
-training_obc(model, criterion, num_epochs, optimizer,train_loader, obc_sample_loader ,hessian_reg, k ,d  )
+training_loss = training_obc(model, criterion, num_epochs, optimizer,train_loader, obc_sample_loader ,hessian_reg, k ,d  )
