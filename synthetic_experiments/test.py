@@ -106,6 +106,8 @@ for expr in range(num_expr):
 
             param.data = mask_obc.view(param.shape) * data_new
 
+            print(mask_obc.view(param.shape) * data_new)
+
             # param.data = torch.mul(mask_obc.view(param.shape), data_new)
 
             obc_maskdist_steps[expr, step] = torch.sum( torch.abs( mask_obc - mask_topk.view(mask_obc.shape)  ) )
