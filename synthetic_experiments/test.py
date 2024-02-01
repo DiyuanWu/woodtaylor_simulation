@@ -11,7 +11,7 @@ import torch.optim as optim
 from matplotlib import pyplot as plt
 
 # For reproduce the results
-torch.manual_seed(1234)
+#torch.manual_seed(1234)
 
 import numpy as np
 
@@ -36,7 +36,7 @@ k_star = 16
 k = 64 # The sparsity of weights during training
 
     
-num_steps = 1000
+num_steps = 750
 
 X, Y, w_star = sparse_linear_data(n, d, k_star)
 
@@ -55,6 +55,12 @@ criterion = nn.MSELoss()
 hessian = torch.matmul(X.t(), X)
 
 h_inv = hessian.inverse()
+
+hessian_sym = 0.5*(hessian + hessian.t())
+        
+eigvals =  torch.real(torch.linalg.eigvals(hessian_sym)) 
+
+max_lr = 1/torch.max( eigvals, dim = 0).values.item()
 
 print(X.shape, Y.shape)
 
@@ -91,7 +97,7 @@ for expr in range(num_expr):
 
             gradient = param.grad.data
             
-            data_new = param.data - gradient @ hessian.inverse()
+            data_new = param.data -   max_lr*gradient
 
             _ , mask_obc = OBC( param.data, h_inv, d, k )
 

@@ -1,5 +1,7 @@
 import os
 import torch
+import torch.nn as nn
+import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
@@ -7,6 +9,15 @@ from torchvision import transforms, utils
 
 
 from algorithms import OBC
+
+
+class LinearRegressionModel(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(LinearRegressionModel, self).__init__()
+        self.linear = nn.Linear(input_size, output_size, bias=False)
+
+    def forward(self, x):
+        return self.linear(x)
 
 
 def get_custom_datasets(path, suffix=''):
@@ -21,3 +32,5 @@ def get_custom_datasets(path, suffix=''):
 
 def get_rn50x16openai_datasets(path):
     return get_custom_datasets(path)
+
+
