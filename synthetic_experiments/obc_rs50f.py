@@ -18,6 +18,24 @@ class LinearRegressionModel(nn.Module):
 
     def forward(self, x):
         return self.linear(x)
+    
+
+class CustomDataset(Dataset):
+
+    def __init__(self, data, targets) -> None:
+        super().__init__()
+        self.data = data
+        self.targets = targets
+
+    def __len__(self):
+        return len(self.targets)
+    
+
+    def __getitem__(self, index) -> Any:
+        
+        return self.data[index, : ], self.targets[index]
+
+
 
 
 def get_custom_datasets(path, suffix=''):
@@ -36,47 +54,54 @@ def get_rn50x16openai_datasets(path):
 
 def training_obc(model, criterion, num_epochs, training_loader ):
 
-    for step in range(num_steps):
-        # Forward pass
-        predictions = model_obc.forward(X)
+    loss_epochs = torch.zeros( num_epochs )
 
-        # Compute the loss
-        loss = criterion(predictions,Y)
+    for epoch in range(num_epochs):
 
-        obc_loss_steps[expr, step] = loss.item()
+        for i, data in enumerate(training_loader):
 
-        # Backward pass
-        loss.backward()
+            # get input data
 
-        #print(loss.item())
+            inputs, labels = data
 
-        # Estimate the Hessian of each parameters of the model
-        # In the case of linear regression, the Hessian is fixed and can be analytcally computed
+            # Forward pass
+            predictions = model(inputs)
 
+            # Compute the loss
+            loss = criterion(predictions,labels)
 
-        # Update parameters using the WoodTaylor optimizer, in this special case of Linear regression 
+            # Backward pass
+            loss.backward()
 
-    
-        for param in model_obc.parameters():
+            #print(loss.item())
 
-            gradient = param.grad.data
-            
-            data_new = param.data - gradient @ hessian.inverse()
-
-            _ , mask_obc = OBC( param.data, h_inv, d, k )
+            # Estimate the Hessian of each parameters of the model
+            # In the case of linear regression, the Hessian is fixed and can be analytcally computed
 
 
-            _, mask_topk = topk(data_new, k)
+            # Update parameters using the WoodTaylor optimizer, in this special case of Linear regression 
 
-            param.data = mask_obc.view(param.shape) * data_new
+        
+            for param in model_obc.parameters():
 
-            # param.data = torch.mul(mask_obc.view(param.shape), data_new)
+                gradient = param.grad.data
+                
+                data_new = param.data - gradient @ hessian.inverse()
 
-            obc_maskdist_steps[expr, step] = torch.sum( torch.abs( mask_obc - mask_topk.view(mask_obc.shape)  ) )
+                _ , mask_obc = OBC( param.data, h_inv, d, k )
 
 
-        # compute the distance to the optimal weight
-        obc_dist_steps[expr, step] = torch.norm(model_obc.linear.weight.data.view(w_star.shape) - w_star, 2)
+                _, mask_topk = topk(data_new, k)
 
-        # Zero the gradients for the next iteration
-        model_obc.linear.weight.grad.data.zero_()
+                param.data = mask_obc.view(param.shape) * data_new
+
+                # param.data = torch.mul(mask_obc.view(param.shape), data_new)
+
+                obc_maskdist_steps[expr, step] = torch.sum( torch.abs( mask_obc - mask_topk.view(mask_obc.shape)  ) )
+
+
+            # compute the distance to the optimal weight
+            obc_dist_steps[expr, step] = torch.norm(model_obc.linear.weight.data.view(w_star.shape) - w_star, 2)
+
+            # Zero the gradients for the next iteration
+            model_obc.linear.weight.grad.data.zero_()
