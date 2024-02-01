@@ -88,7 +88,7 @@ def training_obc(model, criterion, num_epochs, optimizer,training_loader, obc_sa
             # Applying OBC for each row
             for i in range(W.shape[0]):
 
-                _ , mask_obc_i = OBC( W[i,:].view(1,-1), h_inv, d, k )
+                _ , mask_obc_i = OBC( W[i,:].view(1,-1), h_inv, d, k, device=device )
 
                 mask_obc[i,:] = mask_obc_i.view(-1)
 

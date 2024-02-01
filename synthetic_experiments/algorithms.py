@@ -25,7 +25,7 @@ def topk(vector_in, k):
 
 
 
-def OBC(w_in, H_inv_in,d,k):
+def OBC(w_in, H_inv_in,d,k, device='cpu'):
 
     '''
     The computation of optimal brain compression algorithm 
@@ -36,7 +36,7 @@ def OBC(w_in, H_inv_in,d,k):
 
     H_inv = H_inv_in
 
-    mask = torch.ones(w.shape).view(-1)
+    mask = torch.ones(w.shape).view(-1).to(device)
 
     eps = 1e-3
 
