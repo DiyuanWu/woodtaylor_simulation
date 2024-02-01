@@ -54,11 +54,10 @@ def get_custom_datasets(path, subclasses ,suffix=''):
     sub_indices_train = (torch.tensor(y_train)[..., None] == subclasses).any(-1).nonzero(as_tuple=True)[0]
 
     sub_indices_val = (torch.tensor(y_val)[..., None] == subclasses).any(-1).nonzero(as_tuple=True)[0]
-                                                                    
 
-
-    data_train = CustomDataset(data=Subset(x_train, sub_indices_train), targets=Subset(y_train, sub_indices_train))
-    data_val = CustomDataset(data=Subset(x_val, sub_indices_val), targets=Subset(y_val, sub_indices_val))
+    data_train = CustomDataset(data=x_train[sub_indices_train,:], targets=y_train[sub_indices_train])
+    data_val = CustomDataset(data=x_val[sub_indices_val,:], targets=y_val[sub_indices_val])
+    
     return data_train, data_val
 
 
