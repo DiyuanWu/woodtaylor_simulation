@@ -14,7 +14,7 @@ from algorithms import OBC
 class LinearRegressionModel(nn.Module):
     def __init__(self, input_size, output_size):
         super(LinearRegressionModel, self).__init__()
-        self.linear = nn.Linear(input_size, output_size, bias=False)
+        self.linear = nn.Linear(input_size, output_size, bias=True)
 
     def forward(self, x):
         return self.linear(x)
@@ -26,37 +26,66 @@ class CustomDataset(Dataset):
         super().__init__()
         self.data = data
         self.targets = targets
+        self.dim = data.shape[1]
 
     def __len__(self):
         return len(self.targets)
     
 
-    def __getitem__(self, index) -> Any:
+    def __getitem__(self, index):
         
         return self.data[index, : ], self.targets[index]
 
 
 
 
-def get_custom_datasets(path, suffix=''):
+def get_custom_datasets(path, train_size , val_size ,suffix=''):
     x_train = torch.load(os.path.join(path, f'features_train{suffix}.pt'))
     y_train = torch.load(os.path.join(path, f'targets_train{suffix}.pt'))
     x_val = torch.load(os.path.join(path, f'features_val{suffix}.pt'))
     y_val = torch.load(os.path.join(path, f'targets_val{suffix}.pt'))
-    data_train = CustomDataset(data=x_train, targets=y_train)
-    data_val = CustomDataset(data=x_val, targets=y_val)
+    data_train = CustomDataset(data=x_train[ 0:train_size, : ], targets=y_train[ 0:train_size ])
+    data_val = CustomDataset(data=x_val[ 0:val_size, : ], targets=y_val[ 0:val_size ])
     return data_train, data_val
 
 
-def get_rn50x16openai_datasets(path):
-    return get_custom_datasets(path)
+def get_rn50x16openai_datasets(path,train_size, val_size):
+    return get_custom_datasets(path,train_size, val_size)
 
 
-def training_obc(model, criterion, num_epochs, training_loader ):
+def training_obc(model, criterion, num_epochs, optimizer,training_loader, obc_sample_loader ,hessian_reg, k ,d  ):
 
     loss_epochs = torch.zeros( num_epochs )
 
+    #train_data_full = training_loader.data
+
+    #train_targets_full = training_loader.targets
+
     for epoch in range(num_epochs):
+
+        # At the beginning of the step, randomly sample a data batch compute the OBC mask 
+
+        X, Y = next(iter( obc_sample_loader ))
+
+        hessian = X.t() @ X + hessian_reg
+
+        h_inv = torch.linalg.inv(hessian)
+
+        with torch.no_grad():
+
+            W = model.linear.weight.data
+
+            mask_obc =  torch.zeros(W.shape)
+
+            # Applying OBC for each row
+            for i in range(W.shape[0]):
+
+                _ , mask_obc_i = OBC( W[i,:].view(1,-1), h_inv, d, k )
+
+                mask_obc[i,:] = mask_obc_i.view(-1)
+
+
+        # param.data = torch.mul(mask_obc.view(param.shape), data_new)
 
         for i, data in enumerate(training_loader):
 
@@ -73,35 +102,62 @@ def training_obc(model, criterion, num_epochs, training_loader ):
             # Backward pass
             loss.backward()
 
-            #print(loss.item())
+            # Update in this epoches using the OBC mask: 
+            optimizer.step()
 
-            # Estimate the Hessian of each parameters of the model
-            # In the case of linear regression, the Hessian is fixed and can be analytcally computed
+            with torch.no_grad():
+                model.linear.weight.data.mul_(mask_obc)
+            
 
+        with torch.no_grad():
+            
+            predictions = model(X)
 
-            # Update parameters using the WoodTaylor optimizer, in this special case of Linear regression 
+            loss = criterion(predictions,Y)
 
-        
-            for param in model_obc.parameters():
+            loss_epochs[epoch] = loss.item()
 
-                gradient = param.grad.data
-                
-                data_new = param.data - gradient @ hessian.inverse()
+            print(loss.item())
 
-                _ , mask_obc = OBC( param.data, h_inv, d, k )
-
-
-                _, mask_topk = topk(data_new, k)
-
-                param.data = mask_obc.view(param.shape) * data_new
-
-                # param.data = torch.mul(mask_obc.view(param.shape), data_new)
-
-                obc_maskdist_steps[expr, step] = torch.sum( torch.abs( mask_obc - mask_topk.view(mask_obc.shape)  ) )
+    return loss_epochs
 
 
-            # compute the distance to the optimal weight
-            obc_dist_steps[expr, step] = torch.norm(model_obc.linear.weight.data.view(w_star.shape) - w_star, 2)
 
-            # Zero the gradients for the next iteration
-            model_obc.linear.weight.grad.data.zero_()
+
+
+            
+
+
+
+
+
+    
+data_path = '/home/dwu/Projects/Projects/Sparse SGD/woodtaylor_simulation'
+
+dataset_train , dataset_val = get_rn50x16openai_datasets(data_path, 10240, 10240)
+
+train_loader = DataLoader( dataset_train, batch_size=256, shuffle=True )
+
+obc_sample_loader = DataLoader( dataset_train, batch_size=1024, shuffle=True )
+
+num_class = 1000
+
+d = dataset_train.dim
+
+sparsity = 0.25
+
+k = int(sparsity*d )
+
+model = LinearRegressionModel(d, num_class)
+
+criterion = nn.CrossEntropyLoss()
+
+num_epochs = 100
+
+hessian_reg = 1e-3
+
+print(model.linear.weight.shape)
+
+optimizer = optim.SGD( model.parameters(), lr = 0.01, momentum=0.9)
+
+training_obc(model, criterion, num_epochs, optimizer,train_loader, obc_sample_loader ,hessian_reg, k ,d  )
