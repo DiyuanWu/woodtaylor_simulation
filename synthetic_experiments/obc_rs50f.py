@@ -132,7 +132,7 @@ def training_obc(model, criterion, num_epochs, optimizer,training_loader, obc_sa
     return loss_epochs
 
 
-data_path = '/home/dwu/Projects/Projects/Sparse SGD/woodtaylor_simulation'
+data_path = '/nfs/scistore13/mondegrp/dwu/woodtaylor/woodtaylor_simulation'
 
 dataset_train , dataset_val = get_rn50x16openai_datasets(data_path, 10240, 10240)
 
