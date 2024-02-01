@@ -83,7 +83,7 @@ def training_obc(model, criterion, num_epochs, optimizer,training_loader, obc_sa
 
             W = model.linear.weight.data
 
-            mask_obc =  torch.zeros(W.shape)
+            mask_obc =  torch.zeros(W.shape).to(device)
 
             # Applying OBC for each row
             for i in range(W.shape[0]):
@@ -145,7 +145,7 @@ num_class = 1000
 
 d = dataset_train.dim
 
-sparsity = 0.25
+sparsity = 0.5
 
 k = int(sparsity*d )
 
