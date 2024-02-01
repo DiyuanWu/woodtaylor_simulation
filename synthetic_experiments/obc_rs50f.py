@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader,Subset
 from torchvision import transforms, utils
 
 
@@ -43,18 +43,27 @@ class CustomDataset(Dataset):
 
 
 
-def get_custom_datasets(path, train_size , val_size ,suffix=''):
+def get_custom_datasets(path, subclasses ,suffix=''):
+
+    
     x_train = torch.load(os.path.join(path, f'features_train{suffix}.pt'))
     y_train = torch.load(os.path.join(path, f'targets_train{suffix}.pt'))
     x_val = torch.load(os.path.join(path, f'features_val{suffix}.pt'))
     y_val = torch.load(os.path.join(path, f'targets_val{suffix}.pt'))
-    data_train = CustomDataset(data=x_train[ 0:train_size, : ], targets=y_train[ 0:train_size ])
-    data_val = CustomDataset(data=x_val[ 0:val_size, : ], targets=y_val[ 0:val_size ])
+
+    sub_indices_train = (torch.tensor(y_train)[..., None] == subclasses).any(-1).nonzero(as_tuple=True)[0]
+
+    sub_indices_val = (torch.tensor(y_val)[..., None] == subclasses).any(-1).nonzero(as_tuple=True)[0]
+                                                                    
+
+
+    data_train = CustomDataset(data=Subset(x_train, sub_indices_train), targets=Subset(y_train, sub_indices_train))
+    data_val = CustomDataset(data=Subset(x_val, sub_indices_val), targets=Subset(y_val, sub_indices_val))
     return data_train, data_val
 
 
-def get_rn50x16openai_datasets(path,train_size, val_size):
-    return get_custom_datasets(path,train_size, val_size)
+def get_rn50x16openai_datasets(path,subclasses):
+    return get_custom_datasets(path,subclasses)
 
 
 def training_obc(model, criterion, num_epochs, optimizer,training_loader, obc_sample_loader ,hessian_reg, k ,d  ):
@@ -132,16 +141,20 @@ def training_obc(model, criterion, num_epochs, optimizer,training_loader, obc_sa
     return loss_epochs
 
 
+#data_path = '/home/dwu/Projects/Projects/Sparse SGD/woodtaylor_simulation'
 data_path = '/nfs/scistore13/mondegrp/dwu/woodtaylor/woodtaylor_simulation'
 
-dataset_train , dataset_val = get_rn50x16openai_datasets(data_path, 10240, 10240)
+num_class = 5
+
+subclasses = torch.Tensor([i for i in range(num_class)])
+
+dataset_train , dataset_val = get_rn50x16openai_datasets(data_path, subclasses)
 
 train_loader = DataLoader( dataset_train, batch_size=256, shuffle=True )
 
 # The number of samples used for 
 obc_sample_loader = DataLoader( dataset_train, batch_size=1024, shuffle=True )
 
-num_class = 1000
 
 d = dataset_train.dim
 
