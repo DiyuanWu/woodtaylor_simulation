@@ -51,13 +51,13 @@ def get_custom_datasets(path, subclasses ,suffix=''):
     x_val = torch.load(os.path.join(path, f'features_val{suffix}.pt'))
     y_val = torch.load(os.path.join(path, f'targets_val{suffix}.pt'))
 
-    sub_indices_train = (torch.tensor(y_train)[..., None] == subclasses).any(-1).nonzero(as_tuple=True)[0]
+    sub_indices_train = (y_train[..., None] == subclasses).any(-1).nonzero(as_tuple=True)[0]
 
-    sub_indices_val = (torch.tensor(y_val)[..., None] == subclasses).any(-1).nonzero(as_tuple=True)[0]
+    sub_indices_val = (y_val[..., None] == subclasses).any(-1).nonzero(as_tuple=True)[0]
 
     data_train = CustomDataset(data=x_train[sub_indices_train,:], targets=y_train[sub_indices_train])
     data_val = CustomDataset(data=x_val[sub_indices_val,:], targets=y_val[sub_indices_val])
-    
+
     return data_train, data_val
 
 
